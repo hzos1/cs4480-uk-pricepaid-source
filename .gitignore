@@ -1,0 +1,7 @@
+pp-complete.csv
+__pycache__/
+*.pyc
+.DS_Store
+data/parallel/
+data/processed/
+*.nohup.log
