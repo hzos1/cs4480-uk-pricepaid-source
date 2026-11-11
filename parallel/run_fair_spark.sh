@@ -18,13 +18,13 @@ export KMEANS_BATCH=1
 CENT="$ROOT/data/parallel/fair/init_centroids_k${K}.txt"
 FULL="$ROOT/data/parallel/uk_features_scaled_all.txt"
 HOST=$(hostname 2>/dev/null || echo unknown)
-HOST=$(printf '%s' "$HOST" | tr -c 'A-Za-z0-9._-' '_')
+HOST=$(printf '%s' "$HOST" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9._-' '_')
 OUTDIR="$ROOT/data/processed/fair_timing/$HOST"
 mkdir -p "$OUTDIR"
 SPARK_MASTER="${SPARK_MASTER:-local[*]}"
 PY=${PY:-python3}
 
-if ! command -v spark-shell >/dev/null 2>&1; then
+if ! command -v spark-shell >/dev/null 2>&1 && [ ! -f "$SPARK_HOME/bin/spark-shell" ] && [ ! -f "$SPARK_HOME/bin/spark-shell.cmd" ]; then
   echo "spark-shell is not on PATH. Run this on the Hadoop/Spark machine." >&2
   exit 1
 fi
@@ -44,7 +44,15 @@ run_one() {
   export KMEANS_CENTROIDS="$CENT"
   export KMEANS_OUT="$out"
   rm -f "$out"
-  spark-shell --master "$SPARK_MASTER" -i "$ROOT/parallel/spark_kmeans_uk.scala"
+  case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*)
+      # The bash spark-shell builds a Unix classpath. A cmd file avoids Git Bash quoting.
+      cmd.exe //c 'C:\cs4480_data\logs\launch_spark_shell.cmd'
+      ;;
+    *)
+      spark-shell --master "$SPARK_MASTER" -i "$ROOT/parallel/spark_kmeans_uk.scala"
+      ;;
+  esac
   if ! grep -q '^wall_seconds=' "$out"; then
     echo "Spark did not write $out" >&2
     exit 1
@@ -53,8 +61,13 @@ run_one() {
   printf 'spark_master=%s\n' "$SPARK_MASTER" >> "$out"
 }
 
+if [ -n "${FAIR_SIZES:-}" ]; then
+  SIZES="$FAIR_SIZES"
+fi
 for spec in $SIZES; do
   run_one "n${spec}" "$ROOT/data/parallel/fair/n${spec}.txt"
 done
-run_one "all" "$FULL"
+if [ "${FAIR_SKIP_ALL:-}" != 1 ]; then
+  run_one "all" "$FULL"
+fi
 echo "Spark results: $OUTDIR"

@@ -1,0 +1,17 @@
+WSL2 memory cap on goodpc. Re-run 2026-11-11 13:09–13:14 +08:00.
+Ubuntu 22.04. .wslconfig memory=2GB and swap=0. The cap was still on for this re-run.
+MemTotal 1,949,464 kB. MemAvailable 1,261,224 kB at the start. SwapTotal 0.
+File uk_features_scaled_all.txt is 2,222,393,203 bytes.
+
+Python read of the whole file into one bytes object: MemoryError.
+Python keeping every line in a list: the process was killed (exit 137).
+Python reading one line and discarding it: 31,702,685 lines. That count does not keep the matrix.
+
+Timed rerun in a visible window, 2026-11-11 about 13:23–13:26 +08:00. MemTotal 1,949,460 kB. Same cap.
+Python whole-file read: MemoryError.
+Python keeping every line: Killed, exit 137.
+Spark 3.5.3 local[1], driver 512 MB, whole spark-submit: 32.378 seconds, spark_line_count=31702685.
+MapReduce Hadoop 3.3.6 Streaming, local framework inside this 2GB Ubuntu, not Windows YARN: 95.543 seconds, output lines 31702685.
+These seconds are the split counts, not Lloyd.
+
+This is a split scan, not a Lloyd timing. On the 32 GB host the matrix fits, so the earlier Lloyd timings are unchanged. The 2GB result is the case where holding the file fails and a split MapReduce or Spark pass still finishes.

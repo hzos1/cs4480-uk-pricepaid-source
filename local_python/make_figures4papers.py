@@ -893,8 +893,6 @@ def _association_display_rows(rules: pd.DataFrame, top_n: int = 10) -> list[tupl
         )
         if any(x.startswith("period=") for x in items):
             continue
-        if "type=F" in items and "leasehold" in items:
-            continue
         rows.append(
             {
                 "items": items,
@@ -992,7 +990,7 @@ def fig_association_rules_top_lift() -> Path | None:
     fig.text(
         0.5,
         0.095,
-        "Apriori on ~500k sales from 2018 onward (excl. Other).",
+        "All kept sales, 1995–2026, England and Wales (31,702,685 sales; Other excluded).",
         ha="center",
         va="center",
         fontsize=7.5,
@@ -1029,10 +1027,7 @@ fig5_kmeans_elbow_silhouette — Inertia and silhouette for choosing k.
 fig6_kmeans_cluster_profiles — k=4 cluster centres in standardised feature space; row labels name each cluster.
 fig7_kmeans_cluster_share_over_year — Cluster share by year (2018–2026 sample); legend names each cluster.
 fig8_kmeans_logprice_vs_type — Sample points by cluster in log-price vs type space; legend names each cluster (freehold season, new-build, leasehold/flats).
-fig9_parallel_runtime — Fixed-size (10% sample) Python vs Spark vs MapReduce: NumPy wins here due to framework overhead; see fig11–12 for scale-up.
-fig10_parallel_convergence — Max centroid L2 shift vs iteration (shared init; Spark and MR match).
-fig11_scaling_python_vs_spark — Scaling sweep: absolute wall time (a) and absolute throughput (b) for Python / Spark / MapReduce.
-fig12_parallel_runtime_25m — fig9-style bars at ~25.7M points: Python OOM; Spark (~416 s) vs MapReduce (~1460 s).
+fig9–fig12 — Not this experiment. The old k=4 bars are not redrawn.
 fig13_association_rules_top_lift — Association: top Apriori patterns by lift (↔ = both directions; Flat+High price↔Leasehold collapsed from reverse pairs).
 
 All PNGs are 300 dpi; PDFs are vector copies for Word/LaTeX.
@@ -1041,6 +1036,257 @@ All PNGs are 300 dpi; PDFs are vector copies for Word/LaTeX.
     path.write_text(text, encoding="utf-8")
     print(f"  wrote {path.name}")
     return path
+
+
+def fig_kmeans_fair_timing() -> Path | None:
+    """Bars from measured fair_timing files only. An engine with no file is omitted."""
+    host_dir = PROC / "fair_timing" / "goodpc"
+    if not host_dir.is_dir():
+        print("  no fair_timing directory")
+        return None
+    order = ["n200000", "n1000000", "n5000000", "n10000000", "n20000000", "all"]
+    engines = [
+        ("python", "Python", "#1f4e79"),
+        ("spark", "Spark local[*]", "#c47b2b"),
+        ("mapreduce", "MapReduce YARN", "#2f6b4f"),
+    ]
+    found = []
+    for prefix, label, color in engines:
+        heights = []
+        present = False
+        for tag in order:
+            path = host_dir / f"{prefix}_{tag}.txt"
+            wall = None
+            if path.is_file():
+                for line in path.read_text(encoding="utf-8").splitlines():
+                    if line.startswith("wall_seconds="):
+                        wall = float(line.split("=", 1)[1])
+                        present = True
+                        break
+            heights.append(wall)
+        if present:
+            found.append((label, color, heights))
+    if not found:
+        print("  no measured k-means timings")
+        return None
+    setup_paper_style()
+    fig, ax = plt.subplots(figsize=(8.6, 5.0))
+    x = np.arange(len(order))
+    width = 0.8 / len(found)
+    for i, (label, color, heights) in enumerate(found):
+        ax.bar(
+            x + (i - (len(found) - 1) / 2) * width,
+            [np.nan if value is None else value for value in heights],
+            width,
+            label=label,
+            color=color,
+        )
+    labels = ["0.2M", "1M", "5M", "10M", "20M", "all 31.7M"]
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.set_ylabel("Lloyd update seconds")
+    ax.set_xlabel("Rows, same initial centres, k=2")
+    ax.set_title("Lloyd k-means on goodpc, stop at 1e-4")
+    paper_legend(ax)
+    fig.subplots_adjust(bottom=0.24)
+    fig.text(
+        0.5,
+        0.06,
+        "goodpc, AMD Ryzen 5 5600X, 6 cores / 12 threads, 31.89 GB RAM. Python uses 6 workers.",
+        ha="center",
+        fontsize=8,
+    )
+    fig.text(
+        0.5,
+        0.02,
+        "Wall clock starts after the matrix is loaded. Spark is local[*], not YARN. MapReduce is YARN; HDFS put is excluded.",
+        ha="center",
+        fontsize=7.5,
+    )
+    return save(fig, "fig16_kmeans_engines_by_size")
+
+
+def _wall_seconds(path: Path) -> float:
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("wall_seconds="):
+            return float(line.split("=", 1)[1])
+    raise SystemExit(f"missing wall_seconds in {path}")
+
+
+def _kmeans_lines(prefixes: list[tuple[str, str, str]]) -> list[tuple[str, str, list[float]]]:
+    host_dir = PROC / "fair_timing" / "goodpc"
+    order = ["n200000", "n1000000", "n5000000", "n10000000", "n20000000", "all"]
+    found = []
+    for prefix, label, color in prefixes:
+        heights = [_wall_seconds(host_dir / f"{prefix}_{tag}.txt") for tag in order]
+        found.append((label, color, heights))
+    return found
+
+
+def _timing_axes(ax: plt.Axes, found: list[tuple[str, str, list[float]]], ylabel: str) -> None:
+    labels = ["0.2M", "1M", "5M", "10M", "20M", "31.7M"]
+    x = np.arange(len(labels))
+    for label, color, heights in found:
+        ax.plot(x, heights, marker="o", color=color, label=label)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.set_yscale("log")
+    ax.set_xlabel("Rows")
+    ax.set_ylabel(ylabel)
+    paper_legend(ax)
+
+
+def fig17_kmeans_log() -> Path:
+    found = _kmeans_lines(
+        [
+            ("python", "Python, 6 workers", "#1f4e79"),
+            ("spark", "Spark local[*]", "#c47b2b"),
+            ("spark_gpu", "Spark RAPIDS GPU", "#8c3a3a"),
+            ("mapreduce", "MapReduce YARN", "#2f6b4f"),
+            ("cuda", "CUDA", "#3d4c9a"),
+        ]
+    )
+    setup_paper_style()
+    fig, ax = plt.subplots(figsize=(8.8, 5.4))
+    _timing_axes(ax, found, "Lloyd seconds, log scale")
+    ax.set_title("Lloyd k-means on goodpc")
+    fig.subplots_adjust(bottom=0.30)
+    fig.text(
+        0.5,
+        0.145,
+        "goodpc, Ryzen 5 5600X, 31.89 GB. k=2, stop at 1e-4. Wall starts after the matrix is loaded.",
+        ha="center",
+        fontsize=8,
+    )
+    fig.text(
+        0.5,
+        0.100,
+        "Spark CPU is local[*]. Spark GPU is RAPIDS on the RTX 3070, local[1], one partition.",
+        ha="center",
+        fontsize=8,
+    )
+    fig.text(
+        0.5,
+        0.055,
+        "MapReduce is YARN and excludes HDFS put. CUDA wall excludes the host-to-device copy.",
+        ha="center",
+        fontsize=8,
+    )
+    fig.text(
+        0.5,
+        0.015,
+        "CUDA is faster than Python at every measured size, including 0.2M. No unmeasured crossover is drawn.",
+        ha="center",
+        fontsize=8,
+    )
+    return save(fig, "fig17_kmeans_time_log")
+
+
+def fig18_kmeans_without_mapreduce() -> Path:
+    found = _kmeans_lines(
+        [
+            ("python", "Python, 6 workers", "#1f4e79"),
+            ("spark", "Spark local[*]", "#c47b2b"),
+            ("spark_gpu", "Spark RAPIDS GPU", "#8c3a3a"),
+            ("cuda", "CUDA", "#3d4c9a"),
+        ]
+    )
+    setup_paper_style()
+    fig, ax = plt.subplots(figsize=(8.8, 5.4))
+    _timing_axes(ax, found, "Lloyd seconds, log scale")
+    ax.set_title("Lloyd k-means without MapReduce")
+    fig.subplots_adjust(bottom=0.28)
+    fig.text(
+        0.5,
+        0.120,
+        "Same files as fig17. MapReduce is omitted so the other four lines can be compared.",
+        ha="center",
+        fontsize=8,
+    )
+    fig.text(
+        0.5,
+        0.075,
+        "Spark RAPIDS is slower than Python at 0.2M and 1M, and faster at 5M, 10M, 20M, and 31.7M.",
+        ha="center",
+        fontsize=8,
+    )
+    fig.text(
+        0.5,
+        0.030,
+        "That change is between two measured sizes. The exact row where they meet was not measured.",
+        ha="center",
+        fontsize=8,
+    )
+    return save(fig, "fig18_kmeans_without_mapreduce")
+
+
+def fig19_apriori_lines() -> Path:
+    frame = pd.read_csv(ROOT / "reports" / "apriori_count_distribution_timing.csv")
+    frame = frame[frame["status"] == "ok"]
+    order = ["n200000", "n1000000", "n5000000", "n10000000", "n20000000", "all"]
+    labels = ["0.2M", "1M", "5M", "10M", "20M", "31.7M"]
+
+    def heights(engine: str, column: str) -> list[float]:
+        part = frame[frame["engine"] == engine].set_index("tag")
+        return [float(part.loc[tag, column]) for tag in order]
+
+    series = [
+        ("Python, 6 processes", heights("Python", "wall_seconds"), "#1f4e79"),
+        ("Spark wall, no JVM", heights("Spark", "wall_seconds"), "#c47b2b"),
+        ("Spark process, with JVM", heights("Spark", "process_seconds"), "#e0a15a"),
+        ("MapReduce YARN", heights("MapReduce", "wall_seconds"), "#2f6b4f"),
+    ]
+    setup_paper_style()
+    fig, ax = plt.subplots(figsize=(8.8, 5.4))
+    x = np.arange(len(labels))
+    for label, values, color in series:
+        ax.plot(x, values, marker="o", color=color, label=label)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.set_yscale("log")
+    ax.set_xlabel("Rows drawn")
+    ax.set_ylabel("Seconds, log scale")
+    ax.set_title("Apriori Count Distribution on goodpc")
+    paper_legend(ax)
+    fig.subplots_adjust(bottom=0.30)
+    fig.text(
+        0.5,
+        0.145,
+        "goodpc, Ryzen 5 5600X, 31.89 GB. Support 0.05, confidence 0.45, lift 1.15, itemsets up to 3.",
+        ha="center",
+        fontsize=8,
+    )
+    fig.text(
+        0.5,
+        0.100,
+        "Spark is local[*]. Spark wall is the count time. Spark process adds JVM startup.",
+        ha="center",
+        fontsize=8,
+    )
+    fig.text(
+        0.5,
+        0.055,
+        "MapReduce wall is the three count jobs and excludes HDFS put.",
+        ha="center",
+        fontsize=8,
+    )
+    fig.text(
+        0.5,
+        0.015,
+        "Spark wall is faster than Python at every measured size. Spark process is slower at every measured size.",
+        ha="center",
+        fontsize=8,
+    )
+    return save(fig, "fig19_apriori_time_log")
+
+
+def draw_timing_summary() -> None:
+    setup_paper_style()
+    OUT.mkdir(parents=True, exist_ok=True)
+    fig17_kmeans_log()
+    fig18_kmeans_without_mapreduce()
+    fig19_apriori_lines()
+    print("timing summary figures done")
 
 
 def main() -> None:
@@ -1056,14 +1302,18 @@ def main() -> None:
     fig_cluster_profiles()
     fig_cluster_share_over_year()
     fig_logprice_vs_type()
-    fig_parallel_runtime()
-    fig_parallel_convergence()
-    fig_scaling_python_vs_spark()
-    fig_parallel_runtime_25m()
+    # Old bars (fig9, fig10, fig11, fig12) use hardcoded seconds from the
+    # k=4 scaling run (855,193 points and copied 25.7M rows). They are not
+    # this experiment and are not redrawn.
     fig_association_rules_top_lift()
     write_caption_sheet()
     print("Done.")
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    if len(sys.argv) > 1 and sys.argv[1] == "timing":
+        draw_timing_summary()
+    else:
+        main()

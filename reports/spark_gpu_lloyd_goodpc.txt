@@ -1,0 +1,19 @@
+Spark RAPIDS Lloyd k-means on the RTX 3070, inside Ubuntu 22.04 on WSL2.
+Host goodpc. The VM was not memory-capped for this run.
+Spark 3.5.3, RAPIDS Accelerator 24.12.0, CUDA 12 jar, master local[1], one shuffle partition.
+Plugin com.nvidia.spark.SQLPlugin. The executed plan is GpuHashAggregate and GpuInMemoryTableScan.
+Same k=2, same initial centres, stop at a centre movement of 1e-4, float64.
+wall_seconds is the Lloyd loop after the DataFrame is cached. It does not replace the Spark local[*] CPU files.
+
+Rows           Iters   Spark GPU wall s   final shift
+200,000        122     24.460             6.896e-5
+1,000,000      86      17.705             6.571e-5
+5,000,000      87      31.123             8.655e-5
+10,000,000     83      53.744             7.688e-5
+20,000,000     85      96.097             7.633e-5
+31,702,685     86      141.357            6.201e-5
+
+Files: data/processed/fair_timing/goodpc/spark_gpu_*.txt
+gpu_plan=true on every size. Iteration counts match Python, Spark CPU, MapReduce, and CUDA.
+A first 200,000-row launch used 200 shuffle partitions and a CPU cache scan (149.987 s).
+That file was replaced after the cache scan moved onto the GPU and the shuffle was set to 1 partition.

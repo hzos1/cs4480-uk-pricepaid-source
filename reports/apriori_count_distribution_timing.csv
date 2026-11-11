@@ -1,0 +1,19 @@
+engine,tag,rows_drawn,baskets,wall_seconds,load_seconds,count_seconds,process_seconds,rounds,workers,spark_master,status,note,host,cpu_model,cpu_cores,cpu_threads,mem_total_gb
+Python,n200000,200000,195748,3.465,0.021,3.444,3.465,3,6,,ok,6 processes; wall is reread of the basket file plus three count rounds,goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+Spark,n200000,200000,195748,0.912,0.734,0.179,8.501,3,12,local[*],ok,"local[*], baskets cached between rounds; process_seconds includes JVM startup; not YARN",goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+Python,n1000000,1000000,979208,3.774,0.081,3.692,3.774,3,6,,ok,6 processes; wall is reread of the basket file plus three count rounds,goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+Spark,n1000000,1000000,979208,0.965,0.766,0.199,8.547,3,12,local[*],ok,"local[*], baskets cached between rounds; process_seconds includes JVM startup; not YARN",goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+Python,n5000000,5000000,4895680,4.214,0.383,3.832,4.214,3,6,,ok,6 processes; wall is reread of the basket file plus three count rounds,goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+Spark,n5000000,5000000,4895680,1.441,1.013,0.427,8.967,3,12,local[*],ok,"local[*], baskets cached between rounds; process_seconds includes JVM startup; not YARN",goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+Python,n10000000,10000000,9791349,4.973,0.807,4.167,4.973,3,6,,ok,6 processes; wall is reread of the basket file plus three count rounds,goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+Spark,n10000000,10000000,9791349,2.093,1.417,0.676,9.741,3,12,local[*],ok,"local[*], baskets cached between rounds; process_seconds includes JVM startup; not YARN",goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+Python,n20000000,20000000,19583033,6.306,1.541,4.765,6.306,3,6,,ok,6 processes; wall is reread of the basket file plus three count rounds,goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+Spark,n20000000,20000000,19583033,2.539,1.674,0.865,10.389,3,12,local[*],ok,"local[*], baskets cached between rounds; process_seconds includes JVM startup; not YARN",goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+Python,all,31702685,31041768,8.105,2.476,5.63,8.105,3,6,,ok,6 processes; wall is reread of the basket file plus three count rounds,goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+Spark,all,31702685,31041768,2.779,1.867,0.912,10.802,3,12,local[*],ok,"local[*], baskets cached between rounds; process_seconds includes JVM startup; not YARN",goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+MapReduce,n200000,200000,195748,80.36,6.118,80.36,,3,2,yarn,ok,"YARN Streaming; wall is the sum of the count jobs, not the HDFS put; frequent itemsets match Python",goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+MapReduce,n1000000,1000000,979208,100.928,6.106,100.928,,3,2,yarn,ok,"YARN Streaming; wall is the sum of the count jobs, not the HDFS put; frequent itemsets match Python",goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+MapReduce,n5000000,5000000,4895680,129.365,7.727,129.365,,3,2,yarn,ok,"YARN Streaming; wall is the sum of the count jobs, not the HDFS put; frequent itemsets match Python",goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+MapReduce,n10000000,10000000,9791349,156.539,7.145,156.539,,3,2,yarn,ok,"YARN Streaming; wall is the sum of the count jobs, not the HDFS put; frequent itemsets match Python",goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+MapReduce,n20000000,20000000,19583033,194.381,6.754,194.381,,3,2,yarn,ok,"YARN Streaming; wall is the sum of the count jobs, not the HDFS put; frequent itemsets match Python",goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889
+MapReduce,all,31702685,31041768,297.124,6.712,297.124,,3,2,yarn,ok,"YARN Streaming; wall is the sum of the count jobs, not the HDFS put; frequent itemsets match Python",goodpc,AMD Ryzen 5 5600X 6-Core Processor,6,12,31.889

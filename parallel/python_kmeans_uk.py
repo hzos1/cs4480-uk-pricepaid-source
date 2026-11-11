@@ -42,9 +42,12 @@ def chunk_ranges(n, workers):
 
 
 def _assign_chunk(args):
-    """Worker: assign points[lo:hi] to nearest centroid; return sums/counts."""
-    points, centroids, lo, hi, k = args
-    chunk = points[lo:hi]
+    """Worker: assign one row slice to the nearest centroid; return sums/counts.
+
+    The parent passes only that slice. On Windows, multiprocessing pickles every
+    argument, so passing the full matrix once per worker would copy it many times.
+    """
+    chunk, centroids, k = args
     # (n, k) squared distances via ||x-c||^2 = ||x||^2 + ||c||^2 - 2 x.c
     x2 = np.sum(chunk * chunk, axis=1, keepdims=True)
     c2 = np.sum(centroids * centroids, axis=1)
@@ -71,7 +74,9 @@ def run_kmeans(points, centroids, k, max_iter, workers):
     try:
         for it in range(1, max_iter + 1):
             iter_done = it
-            payloads = [(points, cents, lo, hi, k) for lo, hi in ranges]
+            payloads = [
+                (np.ascontiguousarray(points[lo:hi]), cents, k) for lo, hi in ranges
+            ]
             if pool is None:
                 parts = [_assign_chunk(payloads[0])]
             else:

@@ -1,5 +1,5 @@
 """
-UK Price Paid — association rule mining (Apriori) on discretised 2018+ features.
+Association rule mining (Apriori) on a sample of the full cleaned feature file.
 
 Reads derived raw feature rows under data/parallel/; never touches repo-root CSVs.
 Writes tables under data/processed/ and a quick preview under figures/.
@@ -20,7 +20,7 @@ PAR = ROOT / "data" / "parallel"
 PROC = ROOT / "data" / "processed"
 FIG = ROOT / "figures"
 
-RAW_FEAT = PAR / "uk_features_raw_2018plus.txt"
+RAW_FEAT = PAR / "uk_features_raw_all.txt"
 # Columns: log_price, year, month, type_code, is_new, is_freehold
 TYPE_LABEL = {0: "D", 1: "S", 2: "T", 3: "F", 4: "O"}
 TYPE_FULL = {

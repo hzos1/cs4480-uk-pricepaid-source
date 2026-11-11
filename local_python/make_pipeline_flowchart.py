@@ -132,7 +132,7 @@ def make_flowchart() -> Path:
     ax.text(
         5.75,
         7.38,
-        "UK Price Paid — end-to-end project pipeline",
+        "England and Wales Price Paid — project pipeline",
         ha="center",
         va="top",
         fontsize=12.5,
@@ -145,10 +145,10 @@ def make_flowchart() -> Path:
     bw, bh = 2.20, 0.88
     ys = 6.05
     xs = [0.45, 3.15, 5.85, 8.55]
-    b1 = box(xs[0], ys, bw, bh, "1  Raw register", ["HM Land Registry Price Paid", "~3.1 GB CSV (unchanged)"], "data")
-    b2 = box(xs[1], ys, bw, bh, "2  Clean panel", ["monthly tables · type codes"], "data")
-    b3 = box(xs[2], ys, bw, bh, "3  Feature matrix", ["6D z-scored · 2018+", "~8.55M points"], "data")
-    b4 = box(xs[3], ys, bw, bh, "4  Scale-up", ["replicate features", "~17.1M / ~25.7M"], "data")
+    b1 = box(xs[0], ys, bw, bh, "1  Raw register", ["Price Paid CSV, unchanged", "31,702,685 sales"], "data")
+    b2 = box(xs[1], ys, bw, bh, "2  Clean panel", ["positive price, valid date", "types D / S / T / F / O"], "data")
+    b3 = box(xs[2], ys, bw, bh, "3  Feature matrix", ["6 z-scored fields", "1995–2026, all rows"], "data")
+    b4 = box(xs[3], ys, bw, bh, "4  Choose k", ["Python only, k = 2..8", "full file chooses k = 2"], "scale")
 
     arrow(b1["R"], b2["L"])
     arrow(b2["R"], b3["L"])
@@ -159,37 +159,82 @@ def make_flowchart() -> Path:
     lane(0.30, 0.28, 5.30, lane_top - 0.28, "#f4faf6", "#c5d9cc")
     lane(5.90, 0.28, 5.30, lane_top - 0.28, "#f3f6fb", "#c5d0e0")
     ax.text(0.45, 5.28, "Track 1 — Market insight", ha="left", fontsize=9.0, fontweight="bold", color=GREEN, zorder=2)
-    ax.text(0.45, 5.04, "Local analytics for report figures", ha="left", fontsize=7.0, color=MUTED, zorder=2)
-    ax.text(6.05, 5.28, "Track 2 — Parallel evaluation", ha="left", fontsize=9.0, fontweight="bold", color=BLUE, zorder=2)
-    ax.text(6.05, 5.04, "Shared-init Lloyd k-means on Hadoop VM", ha="left", fontsize=7.0, color=MUTED, zorder=2)
+    ax.text(0.45, 5.04, "Purpose: what the sales look like", ha="left", fontsize=7.0, color=MUTED, zorder=2)
+    ax.text(6.05, 5.28, "Track 2 — Parallel timing", ha="left", fontsize=9.0, fontweight="bold", color=BLUE, zorder=2)
+    ax.text(6.05, 5.04, "Same steps, timed because the file is large", ha="left", fontsize=7.0, color=MUTED, zorder=2)
 
-    # Vertical stacks: sit under titles, equal gaps, room for arrow shafts
-    tw, th = 3.60, 0.80
-    gap = 0.38
-    y5 = 3.95
+    # Track 1 has four boxes. Track 2 times the cluster step and the rule step.
+    tw, th = 3.60, 0.72
+    gap = 0.20
+    y5 = 4.12
     y6 = y5 - gap - th
-    y_out = y6 - gap - th
+    y7 = y6 - gap - th
+    y_out = y7 - gap - th
 
     x1 = 0.30 + (5.30 - tw) / 2
-    b5 = box(x1, y5, tw, th, "5  Trends", ["median price & volume", "by type / region"], "insight")
-    b6 = box(x1, y6, tw, th, "6  k-means (k=4)", ["elbow + silhouette", "named cluster profiles"], "insight")
-    o1 = box(x1, y_out, tw, th, "Output — insight figures", ["trends + interpretable segments"], "insight")
+    b5 = box(x1, y5, tw, th, "5  Trends", ["median price and volume", "by type and county"], "insight")
+    b6 = box(x1, y6, tw, th, "6  k-means groups", ["two groups of sales", "tenure and property type"], "insight")
+    b7 = box(x1, y7, tw, th, "7  Association rules", ["type, tenure, price band", "Apriori on all cleaned sales"], "insight")
+    o1 = box(x1, y_out, tw, th, "Output — market figures", ["prices, groups, and rules"], "insight")
 
     x2 = 5.90 + (5.30 - tw) / 2
-    b7 = box(x2, y5, tw, th, "7  Engines", ["Python ProcessPool · Spark 1.2.2", "MapReduce Streaming"], "par")
-    b8 = box(x2, y6, tw, th, "8  Scale sweep", ["0.5M → 25.7M", "wall time & throughput"], "par")
-    o2 = box(x2, y_out, tw, th, "Output — parallel evidence", ["python vs spark vs MR graph"], "par")
+    b8 = box(
+        x2,
+        y6,
+        tw,
+        th,
+        "8  Time the same Lloyd run",
+        ["Python, Spark, YARN, CUDA, GPU Spark", "same centres, stop at 1e-4"],
+        "par",
+    )
+    b9 = box(
+        x2,
+        y7,
+        tw,
+        th,
+        "9  Time the same Apriori",
+        ["Python, Spark, MapReduce", "0.2M rows through the full file"],
+        "par",
+    )
+    o2 = box(x2, y_out, tw, th, "Output — size against time", ["wall-clock seconds on goodpc", "six sizes, one machine"], "par")
 
     # Shared rail in the short white gap between Stage A and lanes
     rail_y = 5.72
-    feed(b3["B"], b5["T"], GREEN, rail_y)
-    feed(b4["B"], b7["T"], BLUE, rail_y)
+    feed(b2["B"], b5["T"], GREEN, rail_y)
+    # Choose k enters the top-right of the groups box, clear of the trend arrow.
+    gutter_x = 5.15
+    entry_x = x1 + tw - 0.45
+    entry_y = y6 + th
+    approach_y = entry_y + 0.16
+    x0, y0 = b4["B"]
+    ax.plot(
+        [x0, x0, gutter_x, gutter_x, entry_x],
+        [y0, rail_y, rail_y, approach_y, approach_y],
+        color=GREEN,
+        lw=1.55,
+        zorder=4,
+        solid_capstyle="round",
+        solid_joinstyle="round",
+    )
+    arrow((entry_x, approach_y), (entry_x, entry_y), GREEN, head_len=0.12, head_half_w=0.07)
 
-    # Vertical chains — attach just outside boxes; gap is large enough for full shafts
-    arrow(b5["B"], b6["T"], GREEN, head_len=0.16, head_half_w=0.08)
-    arrow(b6["B"], o1["T"], GREEN, head_len=0.16, head_half_w=0.08)
-    arrow(b7["B"], b8["T"], BLUE, head_len=0.16, head_half_w=0.08)
-    arrow(b8["B"], o2["T"], BLUE, head_len=0.16, head_half_w=0.08)
+    arrow(b5["B"], b6["T"], GREEN, head_len=0.12, head_half_w=0.07)
+    arrow(b6["B"], b7["T"], GREEN, head_len=0.12, head_half_w=0.07)
+    arrow(b7["B"], o1["T"], GREEN, head_len=0.12, head_half_w=0.07)
+    arrow(b6["R"], b8["L"], BLUE, head_len=0.16, head_half_w=0.08)
+    arrow(b7["R"], b9["L"], BLUE, head_len=0.16, head_half_w=0.08)
+    arrow(b8["B"], b9["T"], BLUE, head_len=0.12, head_half_w=0.07)
+    arrow(b9["B"], o2["T"], BLUE, head_len=0.12, head_half_w=0.07)
+    ax.text(
+        8.55,
+        0.55,
+        "Memory check: the 2.22 GB matrix does not fit in a 2 GB limit",
+        ha="center",
+        va="center",
+        fontsize=6.6,
+        color=MUTED,
+        zorder=2,
+    )
 
     fig.subplots_adjust(left=0.02, right=0.98, top=0.98, bottom=0.02)
     fig.savefig(OUT_PNG, dpi=300, facecolor="white")

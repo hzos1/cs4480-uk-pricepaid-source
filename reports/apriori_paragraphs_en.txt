@@ -1,0 +1,17 @@
+Parallel Apriori used here is the Count Distribution method of Agrawal and Shafer (1996). Each kept sale is one basket. The items are property type (detached, semi-detached, terraced, flat; Other is dropped), tenure (freehold or leasehold; Commonhold is not a column), a separate new-build flag, and a low, mid, or high price band. The price cuts are tertiles of log price on the rows drawn for that size. The same minimum support 0.05, confidence 0.45, and lift 1.15 are used, and itemsets stop at size 3. Candidate itemsets are built on the driver from the previous frequent itemsets. Every engine then counts those candidates on its own partition of the baskets and the counts are summed. This is separate from Lloyd k-means. The k=2 chosen for clustering is not an Apriori parameter.
+
+The method is used because the project compares parallel engines on the same Price Paid file, not because the association rules are a London or macroeconomic result. Apriori (Agrawal and Srikant, 1994, VLDB) finds the frequent itemsets. Count Distribution (Agrawal and Shafer, 1996, IEEE Transactions on Knowledge and Data Engineering 8(6), 962–969) keeps the baskets in place and adds the local counts. A MapReduce Apriori uses one job per round (Lin, Lee and Hsueh, 2012, ICUIMC). Python keeps the counts in memory across six processes. Spark local[*] caches the baskets between rounds. It is not a YARN job.
+
+Measured on goodpc (AMD Ryzen 5 5600X, 6 cores / 12 threads, 31.89 GB RAM, Windows). Wall-clock seconds below are the time to read the basket file and run the three count rounds. Spark process seconds also include starting spark-shell. Frequent-itemset counts from Python and Spark matched on every size. MapReduce did not run, so it has no seconds.
+
+| Rows drawn | Baskets excl. Other | Python wall (s) | Spark local[*] wall (s) | Spark process, including JVM (s) |
+| 200,000 | 195,748 | 3.465 | 0.912 | 8.501 |
+| 1,000,000 | 979,208 | 3.774 | 0.965 | 8.547 |
+| 5,000,000 | 4,895,680 | 4.214 | 1.441 | 8.967 |
+| 10,000,000 | 9,791,349 | 4.973 | 2.093 | 9.741 |
+| 20,000,000 | 19,583,033 | 6.306 | 2.539 | 10.389 |
+| 31,702,685 | 31,041,768 | 8.105 | 2.779 | 10.802 |
+
+On the full file the strongest rule is leasehold and high price implying flat: support 0.0524, confidence 0.8617, lift 4.6918. The reverse, flat and high price implying leasehold, has support 0.0524, confidence 0.9833, and lift 4.1727.
+
+Problems and fixes. Hadoop was not on PATH (`hadoop` is not recognized as an internal or external command). WSL is not installed (`wsl.exe --status` says to run `wsl.exe --install`). winget has no Hadoop package. JDK 17 was installed, and winutils.exe plus hadoop.dll were added so Spark could read local files. That does not start YARN. `wsl --install` was not run because it normally reboots the machine. Spark’s first launch from PowerShell dropped the script argument; calling spark-shell.cmd from a batch file with a path that has no spaces fixed it. The published association-rule figure uses all 31,702,685 kept sales, 1995–2026, England and Wales, after Other is removed.

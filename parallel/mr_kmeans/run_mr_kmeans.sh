@@ -31,6 +31,14 @@ if [[ -z "$STREAMING_JAR" || ! -f "$STREAMING_JAR" ]]; then
   exit 1
 fi
 
+# hadoop.cmd splits an unquoted comma list. On Windows the same mapper,
+# reducer, and centroid update run through a cmd-safe Streaming submit.
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*)
+    exec "${PY:-python}" "$HERE/run_mr_kmeans_win.py"
+    ;;
+esac
+
 mkdir -p "$WORKDIR/centroids" "$WORKDIR/logs"
 cp "$INIT" "$WORKDIR/centroids/centroids.txt"
 chmod +x "$WORKDIR/mapper.py" "$WORKDIR/reducer.py" "$WORKDIR/update_centroids.py"

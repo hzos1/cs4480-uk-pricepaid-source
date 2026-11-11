@@ -51,6 +51,16 @@ def _cpu_model():
         parts = [p for p in brand.split(" ") if p and p.lower() != "name"]
         if parts:
             return " ".join(parts)
+        brand = _run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-Command",
+                "(Get-CimInstance Win32_Processor).Name",
+            ]
+        )
+        if brand:
+            return brand
     return _text(platform.processor()) or "unknown"
 
 

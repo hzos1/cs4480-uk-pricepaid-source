@@ -9,16 +9,15 @@ Property type codes (HM Land Registry Price Paid Data):
 
 fig1_median_price_by_type — Median sale price (£ thousand) by property type over time.
 fig2_volume_by_type — Monthly transaction counts by property type.
-fig3_national_median_price — Approximate national median from D/S/T/F type medians.
+fig3_national_median_price — Transaction-weighted average of the D/S/T/F monthly medians. Not the median of all sales. Other is excluded.
 fig4_top_counties_median — Highest-median counties/districts in a recent year.
-fig5_kmeans_elbow_silhouette — Inertia and silhouette for choosing k.
-fig6_kmeans_cluster_profiles — k=4 cluster centres in standardised feature space; row labels name each cluster.
+fig5_kmeans_elbow_silhouette — Inertia and silhouette on all 31,702,685 kept sales. The chosen k is 2.
+fig6_kmeans_cluster_profiles — Full-file k=2 cluster centres in standardised feature space.
 fig7_kmeans_cluster_share_over_year — Cluster share by year (2018–2026 sample); legend names each cluster.
 fig8_kmeans_logprice_vs_type — Sample points by cluster in log-price vs type space; legend names each cluster (freehold season, new-build, leasehold/flats).
-fig9_parallel_runtime — Fixed-size (10% sample) Python vs Spark vs MapReduce: NumPy wins here due to framework overhead; see fig11–12 for scale-up.
-fig10_parallel_convergence — Max centroid L2 shift vs iteration (shared init; Spark and MR match).
-fig11_scaling_python_vs_spark — Scaling sweep: absolute wall time (a) and absolute throughput (b) for Python / Spark / MapReduce.
-fig12_parallel_runtime_25m — fig9-style bars at ~25.7M points: Python OOM; Spark (~416 s) vs MapReduce (~1460 s).
-fig13_association_rules_top_lift — Association: top Apriori patterns by lift (↔ = both directions; Flat+High price↔Leasehold collapsed from reverse pairs).
+fig9–fig12 — Removed. Those bars were the old k=4 scaling run and are not this experiment.
+fig13_association_rules_top_lift — Association rules on all kept sales, 1995–2026, England and Wales (31,702,685 sales; Other excluded). Top patterns by lift. ↔ means both directions.
+fig15_apriori_engines_by_size — Apriori Count Distribution wall-clock seconds on goodpc. Python uses 6 processes. Spark is local[*] and is not YARN. MapReduce is YARN Streaming. Bars exclude Spark JVM startup and exclude the HDFS put.
+fig16_kmeans_engines_by_size — Lloyd k-means at k=2 on goodpc, same initial centres, stop when the largest centre movement is at most 1e-4. Python uses 6 workers. Spark is local[*], 12 workers, and is not YARN. MapReduce is YARN Streaming. Wall clock starts after the matrix is loaded. HDFS put is not included.
 
 All PNGs are 300 dpi; PDFs are vector copies for Word/LaTeX.

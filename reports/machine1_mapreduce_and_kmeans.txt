@@ -1,0 +1,57 @@
+Machine 1 (goodpc) — MapReduce Apriori and Lloyd k-means
+Host goodpc. AMD Ryzen 5 5600X, 6 physical cores / 12 threads, 31.89 GB RAM.
+Windows 11. Hadoop 3.3.6 single-node YARN and HDFS on 127.0.0.1. Spark 3.5.3.
+The timing files record cpu_cores=12 because that is the logical processor count.
+The second machine (a VM) is not built. These seconds are goodpc only.
+No report PDF was edited.
+
+WSL Ubuntu is not installed. Enabling it needs an administrator approval and a reboot.
+This PC was not rebooted. Windows Hadoop Streaming did submit, so the runs below
+did not use WSL.
+
+MapReduce Apriori (Count Distribution, YARN Streaming)
+Same baskets, support 0.05, confidence 0.45, lift 1.15, itemsets up to 3.
+Wall seconds are the sum of the three count jobs. HDFS put is not included.
+Frequent itemsets matched the existing Python files. Python and Spark rows were kept.
+
+Rows drawn     Baskets      Python s   Spark local[*] s   MapReduce YARN s
+200,000        195,748      3.465      0.912              80.360
+1,000,000      979,208      3.774      0.965              100.928
+5,000,000      4,895,680    4.214      1.441              129.365
+10,000,000     9,791,349    4.973      2.093              156.539
+20,000,000     19,583,033   6.306      2.539              194.381
+31,702,685     31,041,768   8.105      2.779              297.124
+
+Python used 6 processes. Spark used local[*] with 12 workers and is not YARN.
+Spark process time including JVM startup was 8.501, 8.547, 8.967, 9.741, 10.389, 10.802.
+The figure bars use the wall times above, without JVM startup.
+File: reports/apriori_count_distribution_timing.csv
+Figure: figures4papers/fig15_apriori_engines_by_size.png
+
+Lloyd k-means, fixed k=2
+Same rows, same initial centres, stop when the largest centre movement is at most 1e-4.
+max_iter 300 was only a cap. Wall seconds start after the matrix is loaded.
+HDFS put is not included in the MapReduce wall.
+
+Rows           Iters   Python s (6 workers)   Spark local[*] s (12)   MapReduce YARN s
+200,000        122     2.724                  44.042                  3764.627
+1,000,000      86      9.736                  191.088                 2946.511
+5,000,000      87      46.256                 286.247                 3857.836
+10,000,000     83      86.255                 517.373                 4609.536
+20,000,000     85      181.529                1211.223                7643.648
+31,702,685     86      284.730                2692.254                11017.560
+
+Spark master is local[*], not YARN. MapReduce used 2 reducers on YARN.
+The full-file MapReduce job stopped at iteration 86, largest shift 0.000059.
+Files: data/processed/fair_timing/goodpc/
+Figure: figures4papers/fig16_kmeans_engines_by_size.png
+
+Spark sizes 5M, 10M, 20M, and the full file were timed again after a second
+local Spark process was stopped. The seconds in the table are from that
+uncontended rerun. The 0.2M and 1M Spark files were not overwritten.
+
+What failed earlier, and did not produce these seconds
+WSL could not be enabled without elevation (DISM error 740).
+Windows Hadoop then needed a Java 17 --add-opens fix, a NodeManager permission
+workaround, and a winutils hard-link workaround for CreateSymbolicLink error 1314.
+Those were fixed before the jobs above. The recorded jobs completed.

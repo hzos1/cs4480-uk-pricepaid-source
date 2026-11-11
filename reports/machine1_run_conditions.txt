@@ -1,0 +1,103 @@
+Machine 1 run conditions
+Recorded before the first pipeline run on this computer.
+The raw Price Paid file is not edited. Feature matrices are not committed.
+
+Role
+  First machine. Later timings on a second machine must stay in a separate folder.
+
+Equipment
+  Hostname: goodpc
+  Manufacturer / model: ASUS desktop (Win32 model name: System Product Name)
+  Operating system: Microsoft Windows, build 10.0.26200
+  CPU: AMD Ryzen 5 5600X 6-Core Processor
+  Cores: 6 physical, 12 logical
+  Rated max clock: 3701 MHz
+  Installed RAM: 31.89 GB (32 GB class). This run is allowed to use that capacity.
+  Free disk on C: at the start of the run: about 600 GB
+  Java: not installed at the start of this record
+  Hadoop / Spark: not installed at the start of this record
+
+Software used for the Python track
+  Python 3.13.14
+  pandas 3.1.1
+  numpy 2.5.4
+  scikit-learn 1.9.1
+  scipy 1.18.1
+  matplotlib 3.11.2
+  seaborn 0.13.2
+
+Data
+  Source archive: C:\Users\jkjk2\OneDrive\Desktop\4480 group\archive.zip
+  Entry used: pp-complete.csv
+  Uncompressed size: 3,293,180,752 bytes (about 3.1 GB)
+  Working copy: C:\cs4480_data\pp-complete.csv
+  Project path: pp-complete.csv is a hard link to that copy and is gitignored
+  The archive entry is extracted once. The CSV bytes are not rewritten by the scripts.
+  Large outputs go through junctions:
+    data\parallel  -> C:\cs4480_data\parallel
+    data\processed -> C:\cs4480_data\processed
+  Those directories are gitignored. The 2 GB feature matrices must not be committed.
+
+Order of this run
+  1. local_python\build_uk_panel.py
+     Read-only pass over pp-complete.csv.
+     Keep a row only when price is positive, the date parses, and property type is D, S, T, F, or O.
+     Price Paid categories A and B are both kept.
+     A row with record status D would be dropped. If none are present, the kept count should stay 31,702,685.
+     County labels such as TORBAY.1 have the trailing .number removed.
+  2. sh parallel\run_choose_k_by_size.sh, which runs local_python\choose_k_by_size.py
+     Python only. No Spark and no MapReduce.
+     Sizes: 200000, 1000000, 5000000, 10000000, 20000000, and every row.
+     For each size, k = 2..8, n_init = 10, max_iter = 300.
+     The fit uses every row of that size. Silhouette uses 30,000 rows drawn from that fit.
+     The k used later is the winner on the tag "all", not the winner on 200,000 rows.
+  3. Set K in parallel\fair_config.env to that full-file winner.
+     The file currently says K=3. That value is only the old 200,000-row silhouette result
+     (k=3 score 0.325, k=4 score 0.234). Engines are not timed while K is still 3.
+  4. python parallel\prepare_fair_inputs.py once.
+  5. Time one Lloyd update on the shared rows, shared k, and shared initial centres.
+     Stop when the largest centre movement is at most 1e-4. max_iter 300 is only a cap.
+     Python may run on this machine.
+     Spark, if installed here, uses local[*]. That is not a YARN submission.
+     Hadoop Streaming MapReduce is the job that goes through YARN.
+     Each result must record wall-clock time, this CPU, the core count, and this memory
+     under data\processed\fair_timing\<hostname>\.
+
+Measured cleaning result on this machine
+  Script: local_python\build_uk_panel.py
+  Started: 2026-11-10 20:31 local time
+  Finished: 2026-11-10 20:42 local time
+  Wall clock: 671 seconds
+  Rows read: 31,702,685
+  Rows kept: 31,702,685
+  Nothing was dropped. Price Paid categories A and B stayed in. No record status D was present.
+  Years: 1995 to 2026
+  Property type counts: T 9,380,973; S 8,651,328; D 7,308,445; F 5,701,022; O 660,917
+  Feature rows written: 31,702,685
+  Features: log_price, year, month, type_code, is_new, is_freehold
+  The source CSV was not rewritten.
+
+Choose-k progress on this machine
+  Script: local_python\choose_k_by_size.py
+  Threads: OMP_NUM_THREADS=12, MKL_NUM_THREADS=12, OPENBLAS_NUM_THREADS=12
+  The matrix loaded: 31,702,685 rows.
+  These winners are intermediate. The k written into fair_config.env must be the tag "all".
+  n200000 best_k=2. Silhouette at k=2 was 0.3035. This is not the old 200,000-row result (k=3, 0.325).
+  n1000000 best_k=2. Silhouette at k=2 was 0.3016.
+  Larger sizes were still running when this note was written.
+  fair_config.env is still K=3 and has not been used for timing.
+
+Market figures written from this cleaning pass
+  figures4papers\fig0_pipeline_flowchart.png
+  figures4papers\fig1_median_price_by_type.png
+  figures4papers\fig2_volume_by_type.png
+  figures4papers\fig3_national_median_price.png
+    Figure 3 is the transaction-weighted average of the D/S/T/F monthly medians.
+    It is not the median of every sale. Other is excluded.
+  figures4papers\fig4_top_counties_median.png
+    Counties or districts in one year. This is not an England-versus-Wales total.
+
+Not part of this run
+  parallel\run_scaling_benchmark.sh and the seconds drawn in local_python\make_figures4papers.py.
+  Those older bars use other sizes, k=4, and a different iteration cap.
+  They are not measurements from this machine.

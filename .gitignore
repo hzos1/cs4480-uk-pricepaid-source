@@ -5,3 +5,6 @@ __pycache__/
 data/parallel/
 data/processed/
 *.nohup.log
+logs/
+/C*/
+spark-tmp/

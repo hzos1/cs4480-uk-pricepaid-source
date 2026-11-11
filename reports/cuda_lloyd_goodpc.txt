@@ -1,0 +1,27 @@
+CUDA Lloyd k-means on goodpc, included in the engine comparison.
+Host goodpc. AMD Ryzen 5 5600X, 12 threads, 31.89 GB RAM.
+GPU: NVIDIA GeForce RTX 3070, 8192 MiB, driver 610.88.
+Runtime: CUDA SIMD, one thread per sale, block size 256, float64.
+Same k=2, same initial centres, stop when the largest centre movement is at most 1e-4.
+wall_seconds is the Lloyd loop after the matrix is on the device.
+h2d_seconds is the host-to-device copy and is not inside wall_seconds.
+load_seconds is the host read of the text matrix.
+This is a separate method from Spark. The existing Spark local[*] rows stay as they are.
+Spark-on-GPU is a later run and is not in this table.
+
+The 200,000-row file was timed again after the kernel compile was moved
+outside the clock. The timed files below are that second run.
+Iteration counts and the full-file final shift match the Python, Spark, and
+MapReduce runs (full file: 86 iterations, shift 6.201e-5).
+
+Rows           Iters   CUDA wall s   H2D s
+200,000        122     0.975         0.083
+1,000,000      86      0.501         0.093
+5,000,000      87      1.149         0.159
+10,000,000     83      1.840         0.230
+20,000,000     85      3.437         0.587
+31,702,685     86      5.202         0.850
+
+Files: data/processed/fair_timing/goodpc/cuda_*.txt
+At every measured size, the CUDA wall is shorter than the Python 6-worker wall.
+There is no size in this ladder where Python is the faster of these two.

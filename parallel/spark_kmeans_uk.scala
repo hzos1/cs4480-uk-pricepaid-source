@@ -28,8 +28,19 @@ def add_vec(v1: Vector[Double], v2: Vector[Double]): Vector[Double] = {
 
 def asFileUrl(path: String): String = {
   if (path.startsWith("file:")) path
+  else if (path.length >= 3 && path.charAt(1) == ':') "file:///" + path.replace('\\', '/')
+  // Git Bash prints the Windows C: drive as /c/...
+  else if (path.length >= 3 && path.charAt(0) == '/' && path.charAt(2) == '/' && path.charAt(1).isLetter) {
+    "file:///" + path.charAt(1).toUpper + ":" + path.substring(2)
+  }
   else if (path.startsWith("/")) "file://" + path
   else sys.error("K-means path must be absolute: " + path)
+}
+
+def localPath(path: String): String = {
+  if (path.length >= 3 && path.charAt(0) == '/' && path.charAt(2) == '/' && path.charAt(1).isLetter)
+    path.charAt(1).toUpper + ":" + path.substring(2)
+  else path
 }
 
 ////////////////////////
@@ -98,7 +109,7 @@ val elapsedSec = (System.nanoTime() - t0) / 1e9
 println("=== Spark k-means done ===")
 println("iters=" + iter + " wall_seconds=" + elapsedSec)
 
-val outFile = new java.io.File(outPath)
+val outFile = new java.io.File(localPath(outPath))
 val parent = outFile.getParentFile
 if (parent != null && !parent.exists()) parent.mkdirs()
 val pw = new java.io.PrintWriter(outFile)

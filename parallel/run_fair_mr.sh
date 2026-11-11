@@ -8,7 +8,7 @@ export HOUSING="$ROOT"
 CENT="$ROOT/data/parallel/fair/init_centroids_k${K}.txt"
 FULL="$ROOT/data/parallel/uk_features_scaled_all.txt"
 HOST=$(hostname 2>/dev/null || echo unknown)
-HOST=$(printf '%s' "$HOST" | tr -c 'A-Za-z0-9._-' '_')
+HOST=$(printf '%s' "$HOST" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9._-' '_')
 OUTDIR="$ROOT/data/processed/fair_timing/$HOST"
 mkdir -p "$OUTDIR"
 
