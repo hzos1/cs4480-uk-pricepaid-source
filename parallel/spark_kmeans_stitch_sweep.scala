@@ -1,5 +1,5 @@
 // One Spark local[12] session. The same Lloyd stitch, with 6, 12, 24, 36,
-// and 48 contiguous pieces. Each count is its own stage.
+// 48, and 60 contiguous pieces. Each count is its own stage.
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -12,7 +12,7 @@ val pythonExe = sys.env("STITCH_PYTHON")
 val maxIter = sys.env.getOrElse("KMEANS_MAX_ITER", "300")
 val workRoot = sys.env.getOrElse("STITCH_WORK", "C:/cs4480_data/spark-tmp/stitch-sweep")
 val outDir = sys.env("STITCH_OUT_DIR")
-val sweep = sys.env.getOrElse("STITCH_SWEEP", "6,12,24,36,48").split(",").map(_.trim).filter(_.nonEmpty).map(_.toInt)
+val sweep = sys.env.getOrElse("STITCH_SWEEP", "6,12,24,36,48,60").split(",").map(_.trim).filter(_.nonEmpty).map(_.toInt)
 
 val rawFile = new java.io.File(rawPath)
 val n = (rawFile.length() / (6 * 8)).toInt
