@@ -337,8 +337,8 @@ def build_pdf() -> Path:
     story.append(
         Paragraph(
             esc(
-                "Figure 0 summarises the dual path: local trend/k-means analytics for insight, and "
-                "VM-based Python/Spark/MapReduce timing for parallel computing evidence."
+                "Figure 0 summarises the dual path: local trend and k-means for the market figures, and "
+                "the same Lloyd and Apriori steps timed on goodpc, including the 12-piece stitch."
             ),
             body,
         )
@@ -349,8 +349,8 @@ def build_pdf() -> Path:
         story.append(
             Paragraph(
                 esc(
-                    "Figure 0. End-to-end pipeline: Price Paid ingest → cleaned panel → scaled features → "
-                    "(left) trends/k-means figures; (right) Hadoop VM parallel k-means timing."
+                    "Figure 0. End-to-end pipeline: Price Paid ingest, cleaned panel, scaled features, then "
+                    "market figures on the left and, on the right, full-file Lloyd, the 12-piece stitch, and Apriori."
                 ),
                 caption,
             )
