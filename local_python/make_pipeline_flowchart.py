@@ -180,11 +180,20 @@ def make_flowchart() -> Path:
     x2 = 5.90 + (5.30 - tw) / 2
     b8 = box(
         x2,
+        y5,
+        tw,
+        th,
+        "8  Full-file Lloyd",
+        ["Python, Spark, YARN, CUDA, GPU Spark", "86 rounds, same centres, stop at 1e-4"],
+        "par",
+    )
+    b10 = box(
+        x2,
         y6,
         tw,
         th,
-        "8  Time the same Lloyd run",
-        ["Python, Spark, YARN, CUDA, GPU Spark", "same centres, stop at 1e-4"],
+        "9  12-piece stitch",
+        ["Spark, CUDA, and MapReduce", "each piece clusters, then one stitch"],
         "par",
     )
     b9 = box(
@@ -192,11 +201,19 @@ def make_flowchart() -> Path:
         y7,
         tw,
         th,
-        "9  Time the same Apriori",
+        "10  Time the same Apriori",
         ["Python, Spark, MapReduce", "0.2M rows through the full file"],
         "par",
     )
-    o2 = box(x2, y_out, tw, th, "Output — size against time", ["wall-clock seconds on goodpc", "six sizes, one machine"], "par")
+    o2 = box(
+        x2,
+        y_out,
+        tw,
+        th,
+        "Output — wall-clock seconds",
+        ["sizes, core counts, and the stitch", "one machine, goodpc"],
+        "par",
+    )
 
     # Shared rail in the short white gap between Stage A and lanes
     rail_y = 5.72
@@ -221,9 +238,21 @@ def make_flowchart() -> Path:
     arrow(b5["B"], b6["T"], GREEN, head_len=0.12, head_half_w=0.07)
     arrow(b6["B"], b7["T"], GREEN, head_len=0.12, head_half_w=0.07)
     arrow(b7["B"], o1["T"], GREEN, head_len=0.12, head_half_w=0.07)
-    arrow(b6["R"], b8["L"], BLUE, head_len=0.16, head_half_w=0.08)
+    # k-means groups feed the full-file timing, which sits one row higher.
+    gutter_x2 = 5.62
+    ax.plot(
+        [b6["R"][0], gutter_x2, gutter_x2],
+        [b6["R"][1], b6["R"][1], b8["L"][1]],
+        color=BLUE,
+        lw=1.55,
+        zorder=4,
+        solid_capstyle="round",
+        solid_joinstyle="round",
+    )
+    arrow((gutter_x2, b8["L"][1]), b8["L"], BLUE, head_len=0.16, head_half_w=0.08)
+    arrow(b8["B"], b10["T"], BLUE, head_len=0.12, head_half_w=0.07)
     arrow(b7["R"], b9["L"], BLUE, head_len=0.16, head_half_w=0.08)
-    arrow(b8["B"], b9["T"], BLUE, head_len=0.12, head_half_w=0.07)
+    arrow(b10["B"], b9["T"], BLUE, head_len=0.12, head_half_w=0.07)
     arrow(b9["B"], o2["T"], BLUE, head_len=0.12, head_half_w=0.07)
     ax.text(
         8.55,

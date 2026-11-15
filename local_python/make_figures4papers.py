@@ -1237,7 +1237,7 @@ def fig19_apriori_lines() -> Path:
         ("MapReduce YARN", heights("MapReduce", "wall_seconds"), "#2f6b4f"),
     ]
     setup_paper_style()
-    fig, ax = plt.subplots(figsize=(8.8, 5.4))
+    fig, ax = plt.subplots(figsize=(8.8, 6.2))
     x = np.arange(len(labels))
     for label, values, color in series:
         ax.plot(x, values, marker="o", color=color, label=label)
@@ -1247,8 +1247,15 @@ def fig19_apriori_lines() -> Path:
     ax.set_xlabel("Rows drawn")
     ax.set_ylabel("Seconds, log scale")
     ax.set_title("Apriori Count Distribution on goodpc")
-    paper_legend(ax)
-    fig.subplots_adjust(bottom=0.30)
+    # Legend sits below the axes. Inside the axes it covered the MapReduce points.
+    paper_legend(
+        ax,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.22),
+        ncol=2,
+        borderaxespad=0.0,
+    )
+    fig.subplots_adjust(bottom=0.42)
     fig.text(
         0.5,
         0.145,
@@ -1258,21 +1265,21 @@ def fig19_apriori_lines() -> Path:
     )
     fig.text(
         0.5,
-        0.100,
+        0.105,
         "Spark is local[*]. Spark wall is the count time. Spark process adds JVM startup.",
         ha="center",
         fontsize=8,
     )
     fig.text(
         0.5,
-        0.055,
+        0.065,
         "MapReduce wall is the three count jobs and excludes HDFS put.",
         ha="center",
         fontsize=8,
     )
     fig.text(
         0.5,
-        0.015,
+        0.025,
         "Spark wall is faster than Python at every measured size. Spark process is slower at every measured size.",
         ha="center",
         fontsize=8,
